@@ -9,9 +9,9 @@ public class Piece {
     int len, rot;
     int x, y; // bottom-left corner of bounding box
 
-    private final static char[] types = {'I', 'J', 'L', 'O', 'S', 'T', 'Z'};
+    private final static char[] TYPES = {'I', 'J', 'L', 'O', 'S', 'T', 'Z'};
 
-    private static Map<String, Integer> pieceMask = new HashMap<String, Integer>() {{
+    private final static Map<String, Integer> PIECE_MASK = new HashMap<String, Integer>() {{
             put("I0", 17476);
             put("I1", 3840);
             put("I2", 8738);
@@ -49,7 +49,7 @@ public class Piece {
         }};
 
     public Piece() {
-        type = types[new Random().nextInt(types.length)];
+        type = TYPES[new Random().nextInt(TYPES.length)];
         if (type == 'I') {
             len = 4;
         } else if (type == 'O') {
@@ -62,93 +62,77 @@ public class Piece {
         y = Game.BOARD_HEIGHT - len;
     }
 
-    public boolean moveLeft(BigInteger pieces) {
-        if (offLeft()) {
-            return false;
-        }
+    public void moveLeft(BigInteger pieces) {
         x--;
-        if (collides(pieces)) {
+        if (collides(pieces) || offLeft()) {
             x++;
-            return false;
         }
-        return true;
     }
 
-    public boolean moveRight(BigInteger pieces) {
-        if (offRight()) {
-            return false;
-        }
+    public void moveRight(BigInteger pieces) {
         x++;
-        if (collides(pieces)) {
+        if (collides(pieces) || offRight()) {
             x--;
-            return false;
         }
-        return true;
     }
 
     public boolean moveDown(BigInteger pieces) {
-        if (offBottom()) {
-            return false;
-        }
         y--;
-        if (collides(pieces)) {
+        if (collides(pieces) || offBottom()) {
             y++;
             return false;
         }
         return true;
     }
 
-    public boolean rotateLeft(BigInteger pieces) {
+    public void rotateLeft(BigInteger pieces) {
         rot = (rot - 1 + 4) % 4;
         if (offRight() || offLeft() || offBottom() || collides(pieces)) {
             rot = (rot + 1) % 4;
-            return false;
         }
-        return true;
     }
 
-    public boolean rotateRight(BigInteger pieces) {
+    public void rotateRight(BigInteger pieces) {
         rot = (rot + 1) % 4;
         if (offRight() || offLeft() || offBottom() || collides(pieces)) {
             rot = (rot - 1 + 4) % 4;
-            return false;
         }
-        return true;
     }
 
     private boolean offLeft() {
-        int leftCol = ((1 << (len * (-x + 1))) - 1) - ((1 << (len * (-x))) - 1);
-        if (x > 0) {
+        if (x >= 0) {
             return false;
         }
+        int leftCol = ((1 << (len * (-x))) - 1) - ((1 << (len * (-x - 1))) - 1);
         return (getShape() & leftCol) != 0;
     }
 
     private boolean offRight() {
-        int rightCol = ((1 << (len * (Game.BOARD_WIDTH - x))) - 1) - ((1 << (len * (Game.BOARD_WIDTH - x - 1))) - 1);
-        if ((x + len) < Game.BOARD_WIDTH) {
+        if ((x + len) <= Game.BOARD_WIDTH) {
             return false;
         }
+        int rightCol = ((1 << (len * (Game.BOARD_WIDTH - x + 1))) - 1) -
+                ((1 << (len * (Game.BOARD_WIDTH - x))) - 1);
         return (getShape() & rightCol) != 0;
     }
 
     private boolean offBottom() {
-        int bottomRow = 0;
-        for (int i = -y; i < len * len; i += len) {
-            bottomRow += (1 << i);
-        }
-        if (y > 0) {
+        if (y >= 0) {
             return false;
+        }
+        int bottomRow = 0;
+        for (int i = -(y + 1); i < len * len; i += len) {
+            bottomRow += (1 << i);
         }
         return (getShape() & bottomRow) != 0;
     }
 
     private int getShape() {
-        return pieceMask.get(type + Integer.toString(rot));
+        return PIECE_MASK.get(type + Integer.toString(rot));
     }
 
     public BigInteger overlay() {
-        int val = pieceMask.get(type + Integer.toString(rot));
+        int val = PIECE_MASK.get(type + Integer.toString(rot));
         BigInteger ret = BigInteger.ZERO;
         int i = 0;
         while (val > 0) {

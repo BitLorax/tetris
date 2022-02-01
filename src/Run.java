@@ -2,6 +2,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class Run {
     public static void main(String[] args) {
@@ -41,22 +44,33 @@ public class Run {
                     case KeyEvent.VK_SPACE:
                         display.placePiece();
                         break;
+                    case KeyEvent.VK_ESCAPE:
+                        if (display.isPaused()) {
+                            display.resume();
+                        } else {
+                            display.pause();
+                        }
+                        break;
+                    default:
+                        break;
                 }
-                status.setText(" Score: " + display.getScore());
+                if (display.isPaused()) {
+                    status.setText(" Paused");
+                } else {
+                    status.setText(" Score: " + display.getScore());
+                }
             }
             public void keyTyped(KeyEvent e) {}
             public void keyReleased(KeyEvent e) {}
         });
 
-        new Thread() {
-            @Override public void run() {
-                while (true) {
-                    try {
-                        Thread.sleep(1000);
-                        display.moveDown();
-                    } catch (InterruptedException e) { }
-                }
+        ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
+        exec.scheduleAtFixedRate(() -> {
+            display.moveDown();
+            if (display.isGameOver()) {
+                status.setText(" Game Over: " + display.getScore());
+                exec.shutdown();
             }
-        }.start();
+        }, 0, 800, TimeUnit.MILLISECONDS);
     }
 }

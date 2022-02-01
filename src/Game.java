@@ -9,34 +9,49 @@ public class Game {
     Piece piece;
 
     int score;
+    boolean gameOver;
 
     public Game() {
         board = BigInteger.ZERO;
         piece = new Piece();
+        gameOver = false;
+    }
+
+    public static void main(String[] args) {
+        Game game = new Game();
+        game.gameLoop();
     }
 
     public void gameLoop() {
         Scanner sc = new Scanner(System.in);
+        label:
         while (true) {
             printBoard();
             String inp = sc.nextLine();
-            if (inp.equals("a")) {
-                piece.moveLeft(board);
-            } else if (inp.equals("d")) {
-                piece.moveRight(board);
-            } else if (inp.equals("q")) {
-                piece.rotateLeft(board);
-            } else if (inp.equals("e")) {
-                piece.rotateRight(board);
-            } else if (inp.equals(" ")) {
-                placePiece();
-            } else {
-                if (inp.equals("quit")) {
+            switch (inp) {
+                case "a":
+                    piece.moveLeft(board);
                     break;
-                }
-                if (!piece.moveDown(board)) {
-                    setPiece();
-                }
+                case "d":
+                    piece.moveRight(board);
+                    break;
+                case "q":
+                    piece.rotateLeft(board);
+                    break;
+                case "e":
+                    piece.rotateRight(board);
+                    break;
+                case " ":
+                    placePiece();
+                    break;
+                default:
+                    if (inp.equals("quit")) {
+                        break label;
+                    }
+                    if (!piece.moveDown(board)) {
+                        setPiece();
+                    }
+                    break;
             }
         }
     }
@@ -46,11 +61,17 @@ public class Game {
         score += 1;
         clearRows();
         piece = new Piece();
+        if (piece.collides(board)) {
+            gameOver = true;
+        }
     }
 
     public void placePiece() {
-        while (piece.moveDown(board));
-        score += 1;
+        int moves = 0;
+        while (piece.moveDown(board)) {
+            moves++;
+        }
+        score += moves;
         setPiece();
     }
 
@@ -91,13 +112,16 @@ public class Game {
             case 4:
                 score += 800;
                 break;
+            default:
+                break;
         }
     }
 
     public void printBoard() {
         BigInteger overlay = piece.overlay();
         BigInteger display = board.or(overlay);
-        String s = String.format("%" + (BOARD_WIDTH * BOARD_HEIGHT) + "s", display.toString(2)).replaceAll(" ", "0");
+        String s = String.format("%" + (BOARD_WIDTH * BOARD_HEIGHT) + "s",
+                display.toString(2)).replaceAll(" ", "0");
         for (int row = BOARD_HEIGHT - 1; row >= 0; row--) {
             for (int col = 0; col < BOARD_WIDTH; col++) {
                 int idx = row + col * BOARD_HEIGHT;
@@ -112,7 +136,8 @@ public class Game {
         boolean[][] ret = new boolean[BOARD_WIDTH][BOARD_HEIGHT];
         BigInteger overlay = piece.overlay();
         BigInteger display = board.or(overlay);
-        String s = String.format("%" + (BOARD_WIDTH * BOARD_HEIGHT) + "s", display.toString(2)).replaceAll(" ", "0");
+        String s = String.format("%" + (BOARD_WIDTH * BOARD_HEIGHT) + "s",
+                display.toString(2)).replaceAll(" ", "0");
         for (int row = BOARD_HEIGHT - 1; row >= 0; row--) {
             for (int col = 0; col < BOARD_WIDTH; col++) {
                 int idx = row + col * BOARD_HEIGHT;
@@ -132,5 +157,9 @@ public class Game {
 
     public int getScore() {
         return score;
+    }
+
+    public boolean isGameOver() {
+        return gameOver;
     }
 }
