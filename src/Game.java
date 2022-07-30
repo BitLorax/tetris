@@ -5,11 +5,11 @@ public class Game {
     public static final int BOARD_WIDTH = 10;
     public static final int BOARD_HEIGHT = 20;
 
-    BigInteger board;
-    Piece piece;
+    private BigInteger board;
+    private Piece piece;
 
-    int score;
-    boolean gameOver;
+    private int score;
+    private boolean gameOver;
 
     public Game() {
         board = BigInteger.ZERO;

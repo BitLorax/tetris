@@ -5,9 +5,9 @@ import java.math.BigInteger;
 import java.util.Random;
 
 public class Piece {
-    char type;
-    int len, rot;
-    int x, y; // bottom-left corner of bounding box
+    private final char type;
+    private final int len;
+    private int x, y, rot; // bottom-left corner of bounding box
 
     private final static char[] TYPES = {'I', 'J', 'L', 'O', 'S', 'T', 'Z'};
 
